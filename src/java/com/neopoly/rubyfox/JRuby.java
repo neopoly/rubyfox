@@ -1,41 +1,71 @@
 package com.neopoly.rubyfox;
 
-import com.smartfoxserver.v2.core.ISFSEvent;
-import com.smartfoxserver.v2.entities.User;
-import com.smartfoxserver.v2.entities.data.ISFSObject;
 import com.smartfoxserver.v2.extensions.SFSExtension;
-import org.jruby.*;
+import org.jruby.CompatVersion;
+import org.jruby.Ruby;
+import org.jruby.RubyInstanceConfig;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
 
 public class JRuby {
     private Ruby _ruby;
-    private SFSExtension extension;
+    private SFSExtension _extension;
 
     public JRuby(SFSExtension extension) {
-        this.extension = extension;
+        _extension = extension;
+        boot();
+    }
 
-        extension.trace("Booting JRuby");
+    private void boot() {
+        log("Booting JRuby");
+
         RubyInstanceConfig config = new RubyInstanceConfig();
         config.setCompatVersion(CompatVersion.RUBY1_9);
         _ruby = Ruby.newInstance(config);
-        extension.trace("  Version: jruby-" + _ruby.evalScriptlet("JRUBY_VERSION") + " (ruby-" + _ruby.evalScriptlet("RUBY_VERSION") + ")");
+        log("  " + eval("%{Version: jruby-#{JRUBY_VERSION} (ruby-#{RUBY_VERSION})}").toString());
 
-        String loadPath = extension.getConfigProperties().getProperty("load_path");
-        if (loadPath != null) {
-          extension.trace("  Adding " + loadPath + " to $LOAD_PATH");
-          _ruby.evalScriptlet("$LOAD_PATH << \"" + loadPath + "\"");
-        }
-        extension.trace("  $LOAD_PATH = " + _ruby.evalScriptlet("$LOAD_PATH.inspect"));
-        extension.trace("  Setting " + extension + " as $extension");
-        _ruby.getGlobalVariables().set("$extension", JavaUtil.convertJavaToRuby(_ruby, extension));
-        extension.trace("  Require java");
-        _ruby.evalScriptlet("require 'java'");
+        appendLoadPath(_extension.getConfigProperties().getProperty("load_path"));
+        exposeGlobalVariable();
     }
 
     public void load() {
-        extension.trace("  Require " + extension.getName());
-        _ruby.evalScriptlet("require '" + extension.getName() + "'");
-        extension.trace("Booting JRuby completed");
+        require("rubyfox");
+
+        log("Botting JRuby completed");
+    }
+
+    private void appendLoadPath(String loadPath) {
+        if (loadPath != null) {
+            String[] pathes = loadPath.split(":");
+            for (String path : pathes) {
+                evalLogged("$LOAD_PATH << \"" + path + "\"");
+            }
+        } else {
+            log("  No load_path found!");
+        }
+    }
+
+    private void exposeGlobalVariable() {
+        log("  Setting " + _extension + " as $extension");
+        _ruby.getGlobalVariables().set("$extension", JavaUtil.convertJavaToRuby(_ruby, _extension));
+    }
+
+    private void log(String msg) {
+        _extension.trace(msg);
+    }
+
+    private IRubyObject eval(String code) {
+        return _ruby.evalScriptlet(code);
+    }
+
+    private IRubyObject evalLogged(String code) {
+        log("  " + code);
+        IRubyObject result = eval(code);
+        log("  # => " + result);
+        return result;
+    }
+
+    private void require(String lib) {
+        evalLogged("require '" + lib + "'");
     }
 }
