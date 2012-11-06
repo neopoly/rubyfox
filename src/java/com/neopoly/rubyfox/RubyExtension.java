@@ -21,6 +21,13 @@ public class RubyExtension extends SFSExtension {
         trace("  Name: " + getName());
         trace("  Dir: " + getCurrentFolder());
         trace("  Extension filename: " + getExtensionFileName() + " (" + getLevel() + ")");
+        traceLevel();
+        trace("  Reload mode: " + getReloadMode());
+        trace("  Config file: " + getPropertiesFileName());
+        trace("  Config properties: " + getConfigProperties());
+    }
+
+    private void traceLevel() {
         switch (getLevel()) {
             case ZONE:
                 trace("  Zone: " + getParentZone());
@@ -32,9 +39,5 @@ public class RubyExtension extends SFSExtension {
                 trace("  Global");
                 break;
         }
-        trace("  Reload mode: " + getReloadMode());
-
-        trace("  Config file: " + getPropertiesFileName());
-        trace("  Config properties: " + getConfigProperties());
     }
 }
