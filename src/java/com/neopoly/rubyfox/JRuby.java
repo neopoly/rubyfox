@@ -9,10 +9,11 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 public class JRuby {
     private Ruby _ruby;
-    private SFSExtension _extension;
+    private SFSExtension _sfsExtension;
+    private IRubyObject _extensionHandler;
 
-    public JRuby(SFSExtension extension) {
-        _extension = extension;
+    public JRuby(SFSExtension sfsExtension) {
+        _sfsExtension = sfsExtension;
         boot();
     }
 
@@ -24,34 +25,58 @@ public class JRuby {
         _ruby = Ruby.newInstance(config);
         log("  " + eval("%{Version: jruby-#{JRUBY_VERSION} (ruby-#{RUBY_VERSION})}").toString());
 
-        appendLoadPath(_extension.getConfigProperties().getProperty("load_path"));
-        exposeGlobalVariable();
+        appendLoadPath(getConfigProperty("load_path", null));
     }
 
     public void load() {
         require("rubyfox");
-
+        initRubyExtension(getConfigProperty("module_name", "Rubyfox"));
         log("Botting JRuby completed");
     }
 
+    public void handleInit() {
+        delegateToRuby("on_init");
+    }
+
+    public void handleClientRequest(Object... p) {
+        delegateToRuby("on_request", p);
+    }
+
+    public void handleServerEvent(Object... p) {
+        delegateToRuby("on_event", p);
+    }
+
+    public void handleDestroy() {
+        delegateToRuby("on_destroy");
+    }
+
+    private void delegateToRuby(String method, Object... p) {
+        _extensionHandler.callMethod(_ruby.getCurrentContext(), method, JavaUtil.convertJavaArrayToRuby(_ruby, p));
+    }
+
+    private void initRubyExtension(String moduleName) {
+        IRubyObject module = evalLogged(moduleName);
+        // Rubyfox.extension = sfs_extension
+        module.callMethod(_ruby.getCurrentContext(), "extension=", JavaUtil.convertJavaArrayToRuby(_ruby, new Object[]{ _sfsExtension }));
+        // Rubyfox.handler
+        _extensionHandler = module.callMethod(_ruby.getCurrentContext(), "handler", JavaUtil.convertJavaArrayToRuby(_ruby, new Object[]{}));
+    }
+
+    private String getConfigProperty(String name, String def) {
+        String value = _sfsExtension.getConfigProperties().getProperty(name);
+        if (value == null) value = def;
+        return value;
+    }
+
     private void appendLoadPath(String loadPath) {
-        if (loadPath != null) {
-            String[] pathes = loadPath.split(":");
-            for (String path : pathes) {
-                evalLogged("$LOAD_PATH << \"" + path + "\"");
-            }
-        } else {
-            log("  No load_path found!");
+        String[] pathes = loadPath.split(":");
+        for (String path : pathes) {
+            evalLogged("$LOAD_PATH << \"" + path + "\"");
         }
     }
 
-    private void exposeGlobalVariable() {
-        log("  Setting " + _extension + " as $extension");
-        _ruby.getGlobalVariables().set("$extension", JavaUtil.convertJavaToRuby(_ruby, _extension));
-    }
-
     private void log(String msg) {
-        _extension.trace(msg);
+        _sfsExtension.trace(msg);
     }
 
     private IRubyObject eval(String code) {
