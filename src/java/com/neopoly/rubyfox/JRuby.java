@@ -35,31 +35,29 @@ public class JRuby {
     }
 
     public void handleInit() {
-        delegateToRuby("on_init");
+        delegateToHandler("on_init");
     }
 
     public void handleClientRequest(Object... p) {
-        delegateToRuby("on_request", p);
+        delegateToHandler("on_request", p);
     }
 
     public void handleServerEvent(Object... p) {
-        delegateToRuby("on_event", p);
+        delegateToHandler("on_event", p);
     }
 
     public void handleDestroy() {
-        delegateToRuby("on_destroy");
+        delegateToHandler("on_destroy");
     }
 
-    private void delegateToRuby(String method, Object... p) {
+    private void delegateToHandler(String method, Object... p) {
         _extensionHandler.callMethod(_ruby.getCurrentContext(), method, JavaUtil.convertJavaArrayToRuby(_ruby, p));
     }
 
     private void initRubyExtension(String moduleName) {
         IRubyObject module = evalLogged(moduleName);
-        // Rubyfox.extension = sfs_extension
-        module.callMethod(_ruby.getCurrentContext(), "extension=", JavaUtil.convertJavaArrayToRuby(_ruby, new Object[]{ _sfsExtension }));
-        // Rubyfox.handler
-        _extensionHandler = module.callMethod(_ruby.getCurrentContext(), "handler", JavaUtil.convertJavaArrayToRuby(_ruby, new Object[]{}));
+        // Rubyfox.init(sfs_extension)
+        _extensionHandler = module.callMethod(_ruby.getCurrentContext(), "init", JavaUtil.convertJavaArrayToRuby(_ruby, new Object[]{ _sfsExtension }));
     }
 
     private String getConfigProperty(String name, String def) {

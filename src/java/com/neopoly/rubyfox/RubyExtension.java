@@ -1,8 +1,11 @@
 package com.neopoly.rubyfox;
 
 import com.smartfoxserver.v2.core.ISFSEvent;
+import com.smartfoxserver.v2.core.SFSEventType;
 import com.smartfoxserver.v2.entities.User;
 import com.smartfoxserver.v2.entities.data.ISFSObject;
+import com.smartfoxserver.v2.exceptions.SFSException;
+import com.smartfoxserver.v2.extensions.BaseServerEventHandler;
 import com.smartfoxserver.v2.extensions.SFSExtension;
 
 public class RubyExtension extends SFSExtension {
@@ -10,6 +13,8 @@ public class RubyExtension extends SFSExtension {
 
     public void init() {
         logBanner();
+
+        installFakeEventHandlers();
 
         _jruby = new JRuby(this);
         _jruby.load();
@@ -55,6 +60,25 @@ public class RubyExtension extends SFSExtension {
             case GLOBAL:
                 trace("  Global");
                 break;
+        }
+    }
+
+    /**
+     * Install fake handlers for all {@linkplain com.smartfoxserver.v2.core.SFSEvent event types}.
+     *
+     * None of these events will be handled by the fake handler. {@linkplain #handleServerEvent(com.smartfoxserver.v2.core.ISFSEvent)} handles them.
+     * We need to register them all to tell SmartFox to fire all events.
+     */
+    private void installFakeEventHandlers() {
+        for (SFSEventType eventType : SFSEventType.values()) {
+            addEventHandler(eventType, FakeHandler.class);
+        }
+    }
+
+    public static class FakeHandler extends BaseServerEventHandler {
+        @Override
+        public void handleServerEvent(ISFSEvent event) throws SFSException {
+            throw new SFSException("not used");
         }
     }
 }
