@@ -8,6 +8,9 @@ import com.smartfoxserver.v2.exceptions.SFSException;
 import com.smartfoxserver.v2.extensions.BaseServerEventHandler;
 import com.smartfoxserver.v2.extensions.SFSExtension;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public class BaseRubyExtension extends SFSExtension {
     private JRuby _jruby;
 
@@ -23,12 +26,22 @@ public class BaseRubyExtension extends SFSExtension {
 
     @Override
     public void handleClientRequest(String requestId, User sender, ISFSObject params) {
-        _jruby.handleClientRequest(requestId, sender, params);
+        try {
+            _jruby.handleClientRequest(requestId, sender, params);
+        } catch (RuntimeException e) {
+            trace(getStackTrace(e));
+            throw e;
+        }
     }
 
     @Override
     public void handleServerEvent(ISFSEvent event) throws Exception {
-        _jruby.handleServerEvent(event);
+        try {
+            _jruby.handleServerEvent(event);
+        } catch (RuntimeException e) {
+            trace(getStackTrace(e));
+            throw e;
+        }
     }
 
     public String getConfigProperty(String name) {
@@ -78,6 +91,15 @@ public class BaseRubyExtension extends SFSExtension {
             addEventHandler(eventType, FakeHandler.class);
         }
     }
+
+    private static String getStackTrace(Exception ex) {
+        StringWriter w = new StringWriter();
+        ex.printStackTrace(new PrintWriter(w));
+        String stack = w.toString();
+        stack = "\n--- STACKTRACE ---\n".concat(stack.substring(stack.indexOf('\n', stack.indexOf('\n') + 1) + 1));
+        return stack;
+    }
+
 
     public static class FakeHandler extends BaseServerEventHandler {
         @Override
