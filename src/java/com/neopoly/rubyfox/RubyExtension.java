@@ -83,13 +83,15 @@ public class RubyExtension extends BaseRubyExtension {
 
     private void accumulate(String cmd, List<User> reciepients, ISFSObject params, boolean udp) {
         if (ignoreAccumulate(cmd)) return;
-        String log = String.format("%sSEND[#%s]: %s(%d bytes)", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length);
+        //String log = String.format("%sSEND[#%s]: %s(%d bytes)", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length);
+        String log = String.format("%sSEND[#%s]: %s(%d bytes)%s", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length, params.toJson());
         trace(log);
     }
 
     private void accumulate(String cmd, User reciepient, ISFSObject params, boolean udp) {
         if (ignoreAccumulate(cmd)) return;
-        String log = String.format("%sSEND[%s]: %s(%d bytes)", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length);
+        //String log = String.format("%sSEND[%s]: %s(%d bytes)", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length);
+        String log = String.format("%sSEND[%s]: %s(%d bytes)%s", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length, params.toJson());
         trace(log);
     }
 
