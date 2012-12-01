@@ -96,7 +96,7 @@ public class BaseRubyExtension extends SFSExtension {
         StringWriter w = new StringWriter();
         ex.printStackTrace(new PrintWriter(w));
         String stack = w.toString();
-        stack = "\n--- STACKTRACE ---\n".concat(stack.substring(stack.indexOf('\n', stack.indexOf('\n') + 1) + 1));
+        stack = "\n--- STACKTRACE ---\n".concat(stack);
         return stack;
     }
 
