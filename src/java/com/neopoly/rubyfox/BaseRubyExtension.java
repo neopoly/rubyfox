@@ -19,9 +19,14 @@ public class BaseRubyExtension extends SFSExtension {
 
         installFakeEventHandlers();
 
-        _jruby = new JRuby(this);
-        _jruby.load();
-        _jruby.handleInit();
+        try {
+            _jruby = new JRuby(this);
+            _jruby.load();
+            _jruby.handleInit();
+        } catch (RuntimeException e) {
+            trace(getStackTrace(e));
+            throw e;
+        }
     }
 
     @Override
