@@ -11,11 +11,13 @@ import java.util.*;
 
 public class RubyExtension extends BaseRubyExtension {
     private Set<String> _dont_accumulate = new HashSet<String>();
+    private boolean _dumpMessage;
 
     @Override
     public void init() {
         super.init();
         ignoreAccumulates();
+        enableMessageDump();
     }
 
     @Override
@@ -83,16 +85,24 @@ public class RubyExtension extends BaseRubyExtension {
 
     private void accumulate(String cmd, List<User> reciepients, ISFSObject params, boolean udp) {
         if (ignoreAccumulate(cmd)) return;
-        //String log = String.format("%sSEND[#%s]: %s(%d bytes)", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length);
-        String log = String.format("%sSEND[#%s]: %s(%d bytes)%s", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length, params.toJson());
-        trace(log);
+        String line;
+        if (_dumpMessage) {
+            line = String.format("%sSEND[#%s]: %s(%d bytes)%s", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length, params.toJson());
+        } else {
+            line = String.format("%sSEND[#%s]: %s(%d bytes)", udp ? "U" : "", reciepients.size(), cmd, params.toBinary().length);
+        }
+        trace(line);
     }
 
     private void accumulate(String cmd, User reciepient, ISFSObject params, boolean udp) {
         if (ignoreAccumulate(cmd)) return;
-        //String log = String.format("%sSEND[%s]: %s(%d bytes)", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length);
-        String log = String.format("%sSEND[%s]: %s(%d bytes)%s", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length, params.toJson());
-        trace(log);
+        String line;
+        if (_dumpMessage) {
+            line = String.format("%sSEND[%s]: %s(%d bytes)%s", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length, params.toJson());
+        } else {
+            line = String.format("%sSEND[%s]: %s(%d bytes)", udp ? "U" : "", reciepient.getName(), cmd, params.toBinary().length);
+        }
+        trace(line);
     }
 
     private boolean ignoreAccumulate(String cmd) {
@@ -106,5 +116,9 @@ public class RubyExtension extends BaseRubyExtension {
             trace("  Silent events: " + Arrays.toString(tokens));
             Collections.addAll(_dont_accumulate, tokens);
         }
+    }
+
+    private void enableMessageDump() {
+        _dumpMessage = "true".equals(getConfigProperty("dump_message"));
     }
 }
