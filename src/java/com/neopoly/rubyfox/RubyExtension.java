@@ -10,7 +10,7 @@ import com.smartfoxserver.v2.entities.data.SFSObject;
 import java.util.*;
 
 public class RubyExtension extends BaseRubyExtension {
-    private static final Set<String> DONT_ACCUMULATE = new HashSet<String>();
+    private Set<String> _dont_accumulate = new HashSet<String>();
 
     @Override
     public void init() {
@@ -96,7 +96,7 @@ public class RubyExtension extends BaseRubyExtension {
     }
 
     private boolean ignoreAccumulate(String cmd) {
-        return DONT_ACCUMULATE.contains(cmd);
+        return _dont_accumulate.contains(cmd);
     }
 
     private void ignoreAccumulates() {
@@ -104,7 +104,7 @@ public class RubyExtension extends BaseRubyExtension {
         if (ignoreAccumulates != null) {
             String[] tokens = ignoreAccumulates.split("\\s*,\\s*");
             trace("  Silent events: " + Arrays.toString(tokens));
-            Collections.addAll(DONT_ACCUMULATE, tokens);
+            Collections.addAll(_dont_accumulate, tokens);
         }
     }
 }
