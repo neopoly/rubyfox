@@ -31,7 +31,7 @@ public class JRuby {
     public void load() {
         require("rubyfox");
         initRubyExtension(getConfigProperty("module_name", "Rubyfox"));
-        log("Botting JRuby completed");
+        log("Booting JRuby completed");
     }
 
     public void handleInit() {
