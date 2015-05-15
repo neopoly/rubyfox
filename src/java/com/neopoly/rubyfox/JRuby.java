@@ -20,9 +20,7 @@ public class JRuby {
     private void boot() {
         log("Booting JRuby");
 
-        RubyInstanceConfig config = new RubyInstanceConfig();
-        config.setCompatVersion(CompatVersion.RUBY1_9);
-        _ruby = Ruby.newInstance(config);
+        _ruby = Ruby.newInstance();
         log("  " + eval("%{Version: jruby-#{JRUBY_VERSION} (ruby-#{RUBY_VERSION})}").toString());
 
         appendLoadPath(getConfigProperty("load_path", null));
