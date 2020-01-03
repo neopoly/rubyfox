@@ -1,9 +1,8 @@
 package com.neopoly.rubyfox;
 
 import com.smartfoxserver.v2.extensions.SFSExtension;
-import org.jruby.CompatVersion;
+import org.apache.commons.lang.SystemUtils;
 import org.jruby.Ruby;
-import org.jruby.RubyInstanceConfig;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
 
@@ -18,18 +17,18 @@ public class JRuby {
     }
 
     private void boot() {
-        log("Booting JRuby");
+        info("Booting JRuby");
 
         _ruby = Ruby.newInstance();
-        log("  " + eval("%{Version: jruby-#{JRUBY_VERSION} (ruby-#{RUBY_VERSION})}").toString());
+        info("  " + eval("%{Version: jruby-#{JRUBY_VERSION} (ruby-#{RUBY_VERSION})}").toString());
 
         appendLoadPath(getConfigProperty("load_path", null));
     }
 
     public void load() {
-        require("rubyfox");
+        require(getConfigProperty("gem_name", "rubyfox"));
         initRubyExtension(getConfigProperty("module_name", "Rubyfox"));
-        log("Booting JRuby completed");
+        debug("Booting JRuby completed");
     }
 
     public void handleInit() {
@@ -49,13 +48,20 @@ public class JRuby {
     }
 
     private void delegateToHandler(String method, Object... p) {
+        debug("Booting JRuby completed");
         _extensionHandler.callMethod(_ruby.getCurrentContext(), method, JavaUtil.convertJavaArrayToRuby(_ruby, p));
     }
 
     private void initRubyExtension(String moduleName) {
         IRubyObject module = evalLogged(moduleName);
-        // Rubyfox.init(sfs_extension)
-        _extensionHandler = module.callMethod(_ruby.getCurrentContext(), "init", JavaUtil.convertJavaArrayToRuby(_ruby, new Object[]{ _sfsExtension }));
+        _extensionHandler = module.callMethod(
+                _ruby.getCurrentContext(),
+                "init",
+                JavaUtil.convertJavaArrayToRuby(
+                        _ruby,
+                        new Object[]{_sfsExtension}
+                        )
+        );
     }
 
     private String getConfigProperty(String name, String def) {
@@ -65,14 +71,31 @@ public class JRuby {
     }
 
     private void appendLoadPath(String loadPath) {
-        String[] pathes = loadPath.split(":");
-        for (String path : pathes) {
+        String[] paths;
+        if(SystemUtils.IS_OS_WINDOWS) {
+            paths = loadPath.split(";");
+        } else {
+           paths = loadPath.split(":");
+        }
+        for (String path : paths) {
             evalLogged("$LOAD_PATH << \"" + path + "\"");
         }
     }
 
-    private void log(String msg) {
-        _sfsExtension.trace(msg);
+    private void debug(String msg) {
+        _sfsExtension.getLogger().debug(msg);
+    }
+
+    private void info(String msg) {
+        _sfsExtension.getLogger().info(msg);
+    }
+
+    private void warn(String msg) {
+        _sfsExtension.getLogger().warn(msg);
+    }
+
+    private void error(String msg) {
+        _sfsExtension.getLogger().error(msg);
     }
 
     private IRubyObject eval(String code) {
@@ -80,9 +103,9 @@ public class JRuby {
     }
 
     private IRubyObject evalLogged(String code) {
-        log("  " + code);
+        debug("  " + code);
         IRubyObject result = eval(code);
-        log("  # => " + result);
+        debug("  # => " + result);
         return result;
     }
 
