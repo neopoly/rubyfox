@@ -9,7 +9,7 @@ else
   install_lib_dir = File.join(extensions_dir, "__lib__")
 
   unless File.directory?(install_lib_dir)
-    FileUtils.mkdir_p(install_lib_dir)
+    mkdir_p(install_lib_dir)
   end
 end
 
@@ -24,9 +24,9 @@ namespace :rubyfox do
   task :compile do
     puts "Compiling..."
     if Gem.win_platform?
-      system "javac -d out -cp src/java;lib/*;#{sfe_root}/lib/* src/java/com/neopoly/rubyfox/*.java"
+      system "javac -source 1.8 -target 1.8 -d out -cp src/java;lib/*;#{sfe_root}/lib/* src/java/com/neopoly/rubyfox/*.java"
     else
-      system "javac -d out -cp 'src/java:lib/*:#{sfe_root}/lib/*' src/java/com/neopoly/rubyfox/*.java"
+      system "javac -source 1.8 -target 1.8 -d out -cp 'src/java:lib/*:#{sfe_root}/lib/*' src/java/com/neopoly/rubyfox/*.java"
     end
   end
 
@@ -43,10 +43,10 @@ namespace :rubyfox do
   end
 
   desc "Install rubyfox.jar"
-  task :install_jar => :jar do
+  task :install_jar do
     puts "Installing jar..."
     unless File.directory?(extension_dir)
-      FileUtils.mkdir_p(extension_dir)
+      mkdir_p(extension_dir)
     end
     cp FileList["target/rubyfox.jar"], extension_dir
   end
@@ -56,7 +56,7 @@ namespace :rubyfox do
     unless File.file? File.join(extension_dir,"config.properties")
       ruby_lib = File.join(extension_dir, "lib")
       unless File.directory?(ruby_lib)
-        FileUtils.mkdir_p(ruby_lib)
+        mkdir_p(ruby_lib)
       end
       puts "Copy example files..."
       cp FileList["example/config.properties"], extension_dir
