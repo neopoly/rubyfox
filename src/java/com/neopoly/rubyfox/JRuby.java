@@ -48,7 +48,7 @@ public class JRuby {
     }
 
     private void delegateToHandler(String method, Object... p) {
-        debug("Booting JRuby completed");
+        debug("delegating "+ method +" with "+ p.length +" parameters");
         _extensionHandler.callMethod(_ruby.getCurrentContext(), method, JavaUtil.convertJavaArrayToRuby(_ruby, p));
     }
 
