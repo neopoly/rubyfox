@@ -10,7 +10,7 @@ import com.smartfoxserver.v2.entities.data.SFSObject;
 import java.util.*;
 
 public class RubyExtension extends BaseRubyExtension {
-    private Set<String> _dont_accumulate = new HashSet<String>();
+    private Set<String> _dont_accumulate = new HashSet<>();
     private boolean _dumpMessage;
 
     @Override
