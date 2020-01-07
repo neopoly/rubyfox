@@ -38,7 +38,7 @@ namespace :rubyfox do
 
   desc "Install jars to #{install_lib_dir}"
   task :install_jruby do
-    puts "Installing Jruby..."
+    puts "Installing JRuby..."
     cp FileList["lib/*.jar"], install_lib_dir
   end
 
